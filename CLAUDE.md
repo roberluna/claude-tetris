@@ -19,5 +19,5 @@ All logic is in `game.js` as top-level functions over shared module-level `let` 
 ## Gotchas
 
 - `COLS`/`ROWS`/`BLOCK` must match the `<canvas id="board">` `width`/`height` in `index.html`. The next-piece canvas uses its own hardcoded 4×4 grid and `NB = 30` in `drawNext`.
-- `endGame` calls `cancelAnimationFrame(animId)`, but when it is triggered from inside `loop` (via `lockPiece` → `spawn`), `loop` then reschedules itself, so the render loop keeps running after game over. Input is blocked by the `gameOver` flag, but gravity still runs on the stale `current` piece. Keep this in mind when touching the end-of-game or pause flow.
+- `endGame` calls `cancelAnimationFrame(animId)`, but when it is triggered from inside `loop` (via `lockPiece` → `spawn`), `loop` still reschedules itself afterwards. That's why `loop` starts with `if (gameOver) return;`: the next frame exits without applying gravity or rescheduling. Keep this guard when touching the end-of-game or pause flow.
 - The `keydown` handler calls `updateHUD()` after every key, which is why `hardDrop` does not call it itself.
