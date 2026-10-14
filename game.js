@@ -433,12 +433,14 @@ document.addEventListener('keydown', e => {
   updateHUD();
 });
 
-restartBtn.addEventListener('click', init);
+restartBtn.addEventListener('click', () => {
+  submitRecord(); // no perder un récord pendiente si se reinicia sin pulsar Guardar
+  init();
+});
 playBtn.addEventListener('click', startGame);
 nameForm.addEventListener('submit', e => {
   e.preventDefault();
   submitRecord();
-  restartBtn.focus();
 });
 resetRecordsBtn.addEventListener('click', () => {
   if (!confirm('¿Borrar todos los records?')) return;
