@@ -166,6 +166,12 @@ Cuando una pieza recién generada ya colisiona al aparecer (`spawn`), se dispara
 
 ---
 
+## Skins
+
+El selector de la esquina superior izquierda cambia el aspecto del juego sin recargar: **Retro** (bloques planos, estilo original), **Neon** (fondo negro con brillo `shadowBlur`), **Pastel** (colores suaves y bordes redondeados) y **Pixel art** (textura de píxeles sobre cada bloque). La elección se guarda en `localStorage` (clave `tetris.skin`) y convive con el modo claro/oscuro. Cada skin se define en `SKINS` (`game.js`) con sus `colors`, `grid` y su función `drawBlock`.
+
+---
+
 ## Personalización
 
 Algunos parámetros fáciles de tunear en `game.js`:
@@ -175,7 +181,7 @@ Algunos parámetros fáciles de tunear en `game.js`:
 | `COLS`         | Columnas del tablero                     | `10`                  |
 | `ROWS`         | Filas del tablero                        | `20`                  |
 | `BLOCK`        | Tamaño en píxeles de cada celda          | `30`                  |
-| `COLORS`       | Paleta de colores por tipo de pieza      | 8 colores             |
+| `SKINS`        | Skins: paleta, cuadrícula y dibujo       | 4 skins               |
 | `LINE_SCORES`  | Puntos por 1, 2, 3 o 4 líneas eliminadas | `[0,100,300,500,800]` |
 | `dropInterval` | Velocidad inicial de caída en ms         | `1000`                |
 
