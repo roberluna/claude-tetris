@@ -84,7 +84,7 @@ Después abre `http://localhost:8000` en el navegador.
 | `↑` o `X` | Rotar la pieza en sentido horario |
 | `↓`       | Soft drop (bajar más rápido)      |
 | `Espacio` | Hard drop (caída instantánea)     |
-| `P`       | Pausar / reanudar                 |
+| `P` / `Esc` | Pausar / reanudar (menú de pausa) |
 
 ---
 
@@ -139,6 +139,15 @@ init()
 ```
 
 Cuando una pieza recién generada ya colisiona al aparecer (`spawn`), se dispara `endGame()` y se muestra el overlay de **Game Over**.
+
+### Menú de pausa
+
+`P` o `Esc` abren (y cierran) el menú de pausa, que bloquea las teclas del juego mientras está abierto. Opciones:
+
+- **Reanudar**: vuelve a la partida (también con `Esc`).
+- **Reiniciar**: nueva partida sin recargar la página.
+- **Ver controles**: despliega la lista de teclas.
+- **Nivel inicial** (1–10): nivel con el que empieza la próxima partida; se guarda en `localStorage` (`tetris.startLevel`). El nivel pasa a ser `nivelInicial + ⌊líneas / 10⌋` y la velocidad se calcula con `speedFor(nivel)`.
 
 ---
 

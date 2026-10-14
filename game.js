@@ -41,9 +41,33 @@ const overlay = document.getElementById('overlay');
 const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
+const pauseMenu = document.getElementById('pause-menu');
+const resumeBtn = document.getElementById('resume-btn');
+const pauseRestartBtn = document.getElementById('pause-restart-btn');
+const controlsBtn = document.getElementById('controls-btn');
+const controlsList = document.getElementById('controls-list');
+const startLevelSelect = document.getElementById('start-level');
 const themeToggle = document.getElementById('theme-toggle');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
+let startLevel = loadStartLevel();
+let ignoreRepeat = false; // tras reanudar, ignora teclas mantenidas hasta el próximo keyup
+
+function speedFor(lvl) {
+  return Math.max(100, 1000 - (lvl - 1) * 90);
+}
+
+function loadStartLevel() {
+  try {
+    const n = parseInt(localStorage.getItem('tetris.startLevel'), 10);
+    if (n >= 1 && n <= 10) return n;
+  } catch (e) { /* localStorage no disponible */ }
+  return 1;
+}
+
+function saveStartLevel(n) {
+  try { localStorage.setItem('tetris.startLevel', String(n)); } catch (e) { /* ignorar */ }
+}
 
 function createBoard() {
   return Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
@@ -109,8 +133,8 @@ function clearLines() {
   if (cleared) {
     lines += cleared;
     score += (LINE_SCORES[cleared] || 0) * level;
-    level = Math.floor(lines / 10) + 1;
-    dropInterval = Math.max(100, 1000 - (level - 1) * 90);
+    level = startLevel + Math.floor(lines / 10);
+    dropInterval = speedFor(level);
     updateHUD();
   }
 }
@@ -233,13 +257,16 @@ function togglePause() {
   if (gameOver) return;
   paused = !paused;
   if (!paused) {
+    pauseMenu.classList.add('hidden');
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    ignoreRepeat = true;
+    dropAccum = 0;
     lastTime = performance.now();
     loop(lastTime);
   } else {
     cancelAnimationFrame(animId);
-    overlayTitle.textContent = 'PAUSA';
-    overlayScore.textContent = '';
-    overlay.classList.remove('hidden');
+    pauseMenu.classList.remove('hidden');
+    resumeBtn.focus();
   }
 }
 
@@ -264,23 +291,31 @@ function init() {
   board = createBoard();
   score = 0;
   lines = 0;
-  level = 1;
+  level = startLevel;
   paused = false;
+  ignoreRepeat = false;
   gameOver = false;
-  dropInterval = 1000;
+  dropInterval = speedFor(level);
   dropAccum = 0;
   lastTime = performance.now();
   next = randomPiece();
   spawn();
   updateHUD();
   overlay.classList.add('hidden');
+  pauseMenu.classList.add('hidden');
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   cancelAnimationFrame(animId);
   animId = requestAnimationFrame(loop);
 }
 
 document.addEventListener('keydown', e => {
-  if (e.code === 'KeyP') { togglePause(); return; }
-  if (paused || gameOver) return;
+  if (e.code === 'KeyP' || e.code === 'Escape') {
+    e.preventDefault();
+    if (!e.repeat) togglePause();
+    return;
+  }
+  if (paused || gameOver) return; // menú abierto: teclas del juego bloqueadas
+  if (ignoreRepeat && e.repeat) return;
   switch (e.code) {
     case 'ArrowLeft':
       if (!collide(current.shape, current.x - 1, current.y)) current.x--;
@@ -303,7 +338,22 @@ document.addEventListener('keydown', e => {
   updateHUD();
 });
 
+document.addEventListener('keyup', () => { ignoreRepeat = false; });
+
 restartBtn.addEventListener('click', init);
+resumeBtn.addEventListener('click', togglePause);
+pauseRestartBtn.addEventListener('click', init);
+
+controlsBtn.addEventListener('click', () => {
+  const open = controlsList.classList.toggle('hidden') === false;
+  controlsBtn.setAttribute('aria-expanded', String(open));
+});
+
+startLevelSelect.value = String(startLevel);
+startLevelSelect.addEventListener('change', () => {
+  startLevel = parseInt(startLevelSelect.value, 10);
+  saveStartLevel(startLevel);
+});
 
 themeToggle.addEventListener('click', () => {
   const light = document.documentElement.dataset.theme !== 'light';
