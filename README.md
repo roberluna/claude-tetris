@@ -84,7 +84,7 @@ Después abre `http://localhost:8000` en el navegador.
 | `↑` o `X` | Rotar la pieza en sentido horario |
 | `↓`       | Soft drop (bajar más rápido)      |
 | `Espacio` | Hard drop (caída instantánea)     |
-| `P`       | Pausar / reanudar                 |
+| `P` / `Esc` | Pausar / reanudar (menú de pausa) |
 
 ---
 
@@ -117,7 +117,7 @@ Contiene toda la lógica del juego. A grandes rasgos:
 - **Game loop** (`loop`): basado en `requestAnimationFrame`, acumula el tiempo transcurrido y baja la pieza una fila cuando se supera `dropInterval`.
 - **Limpieza de líneas** (`clearLines`): recorre el tablero de abajo hacia arriba; cada fila completa se elimina y se inserta una vacía en la cima.
 - **Puntuación**: usa la tabla clásica `[0, 100, 300, 500, 800]` multiplicada por el nivel actual; el hard drop suma 2 puntos por celda recorrida y el soft drop 1 punto por fila.
-- **Nivel y velocidad**: el nivel sube cada 10 líneas; la velocidad de caída se calcula como `max(100, 1000 − (level − 1) × 90)` milisegundos.
+- **Nivel y velocidad**: el nivel sube cada 10 líneas a partir del nivel inicial; la velocidad de caída es `speedFor(level)` = `max(100, 1000 − (level − 1) × 90)` milisegundos.
 - **Ghost piece** (`ghostY`): proyecta la posición final de la pieza actual hacia abajo y la dibuja con `globalAlpha = 0.2`.
 
 ### Flujo del juego
@@ -139,6 +139,15 @@ init()
 ```
 
 Cuando una pieza recién generada ya colisiona al aparecer (`spawn`), se dispara `endGame()` y se muestra el overlay de **Game Over**.
+
+### Menú de pausa
+
+`P` o `Esc` abren (y cierran) el menú de pausa, que bloquea las teclas del juego mientras está abierto. Opciones:
+
+- **Reanudar**: vuelve a la partida (también con `Esc`).
+- **Reiniciar**: nueva partida sin recargar la página.
+- **Ver controles**: despliega la lista de teclas.
+- **Nivel inicial** (1–10): nivel con el que empieza la próxima partida; se guarda en `localStorage` (`tetris.startLevel`). El nivel pasa a ser `nivelInicial + ⌊líneas / 10⌋` y la velocidad se calcula con `speedFor(nivel)`.
 
 ---
 
