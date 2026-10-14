@@ -44,10 +44,44 @@
         </div>
       </aside>
 
+      <div id="start-screen" class="overlay">
+        <div class="overlay-box">
+          <p class="start-title">TETRIS</p>
+          <div id="start-records" class="records">
+            <span class="label">TOP 5</span>
+          <table class="records-table">
+            <thead><tr><th>#</th><th>Nombre</th><th>Puntos</th><th>Líneas</th><th>Nivel</th></tr></thead>
+            <tbody class="rec-body"></tbody>
+          </table>
+          <p class="rec-stats"></p>
+          </div>
+          <div class="start-actions">
+            <button id="play-btn" type="button">Jugar</button>
+            <button id="reset-records-btn" class="secondary-btn" type="button">Resetear records</button>
+          </div>
+        </div>
+      </div>
+
       <div id="overlay" class="overlay hidden">
         <div class="overlay-box">
           <p id="overlay-title">GAME OVER</p>
           <p id="overlay-score"></p>
+          <div id="gameover-extra" class="hidden">
+            <form id="name-form" class="name-form hidden">
+              <p id="record-msg">¡Nuevo récord! Escribe tu nombre</p>
+              <div class="name-row">
+                <input id="name-input" type="text" maxlength="12" autocomplete="off" placeholder="Tu nombre" aria-label="Nombre del jugador" />
+                <button id="save-btn" type="submit">Guardar</button>
+              </div>
+            </form>
+            <div id="gameover-records" class="records">
+          <table class="records-table">
+            <thead><tr><th>#</th><th>Nombre</th><th>Puntos</th><th>Líneas</th><th>Nivel</th></tr></thead>
+            <tbody class="rec-body"></tbody>
+          </table>
+          <p class="rec-stats"></p>
+            </div>
+          </div>
           <button id="restart-btn">Reiniciar</button>
         </div>
       </div>
