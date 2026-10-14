@@ -4,17 +4,111 @@ const COLS = 10;
 const ROWS = 20;
 const BLOCK = 30;
 
-const COLORS = [
-  null,
-  '#4dd0e1', // I - cyan
-  '#ffd54f', // O - yellow
-  '#ba68c8', // T - purple
-  '#81c784', // S - green
-  '#e57373', // Z - red
-  '#90caf9', // J - azul pálido
-  '#ffb74d', // L - orange
-  '#a1887f', // Tuerca - marrón
-];
+// ---- Skins ----
+// Cada skin define `colors` (índices 1-8, igual que PIECES), `grid` (color de la
+// cuadrícula o null para usar --grid del CSS) y `drawBlock(context, px, py, color, size, alpha)`
+// con coordenadas en píxeles.
+function roundedRect(context, x, y, w, h, r) {
+  context.beginPath();
+  if (context.roundRect) {
+    context.roundRect(x, y, w, h, r);
+  } else {
+    context.moveTo(x + r, y);
+    context.arcTo(x + w, y, x + w, y + h, r);
+    context.arcTo(x + w, y + h, x, y + h, r);
+    context.arcTo(x, y + h, x, y, r);
+    context.arcTo(x, y, x + w, y, r);
+    context.closePath();
+  }
+}
+
+const SKINS = {
+  retro: {
+    name: 'Retro',
+    colors: [
+      null,
+      '#4dd0e1', // I - cyan
+      '#ffd54f', // O - yellow
+      '#ba68c8', // T - purple
+      '#81c784', // S - green
+      '#e57373', // Z - red
+      '#90caf9', // J - azul pálido
+      '#ffb74d', // L - orange
+      '#a1887f', // Tuerca - marrón
+    ],
+    grid: null,
+    drawBlock(context, px, py, color, size) {
+      context.fillStyle = color;
+      context.fillRect(px + 1, py + 1, size - 2, size - 2);
+      // highlight
+      context.fillStyle = 'rgba(255,255,255,0.12)';
+      context.fillRect(px + 1, py + 1, size - 2, 4);
+    },
+  },
+  neon: {
+    name: 'Neon',
+    colors: [
+      null,
+      '#00f0ff', '#fff200', '#d500f9', '#39ff14', '#ff1744', '#2979ff', '#ff9100', '#ff6e40',
+    ],
+    grid: '#1a1a24',
+    drawBlock(context, px, py, color, size) {
+      context.shadowColor = color;
+      context.shadowBlur = 12;
+      context.fillStyle = color;
+      context.fillRect(px + 3, py + 3, size - 6, size - 6);
+      context.shadowBlur = 0;
+      // núcleo brillante
+      context.fillStyle = 'rgba(255,255,255,0.35)';
+      context.fillRect(px + 6, py + 6, size - 12, size - 12);
+    },
+  },
+  pastel: {
+    name: 'Pastel',
+    colors: [
+      null,
+      '#a8e6ef', '#fff1b0', '#d9b8f0', '#b9eac0', '#f6b8b8', '#bcd7f7', '#ffd6a5', '#d7c4bb',
+    ],
+    grid: null,
+    drawBlock(context, px, py, color, size) {
+      context.fillStyle = color;
+      roundedRect(context, px + 1.5, py + 1.5, size - 3, size - 3, size * 0.28);
+      context.fill();
+      context.fillStyle = 'rgba(255,255,255,0.45)';
+      roundedRect(context, px + 5, py + 4, size - 10, 4, 2);
+      context.fill();
+    },
+  },
+  pixel: {
+    name: 'Pixel art',
+    colors: [
+      null,
+      '#29b6d6', '#f5c518', '#9c4dcc', '#4caf50', '#d93a3a', '#3f7fd9', '#f08a1c', '#8d6e63',
+    ],
+    grid: null,
+    drawBlock(context, px, py, color, size) {
+      const n = 6; // rejilla de 6x6 "píxeles" por bloque
+      const u = (size - 2) / n;
+      const x0 = px + 1, y0 = py + 1;
+      context.fillStyle = color;
+      context.fillRect(x0, y0, n * u, n * u);
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+          const edgeLight = i === 0 || j === 0;
+          const edgeDark = i === n - 1 || j === n - 1;
+          if (edgeDark) context.fillStyle = 'rgba(0,0,0,0.35)';
+          else if (edgeLight) context.fillStyle = 'rgba(255,255,255,0.4)';
+          else if ((i + j) % 2 === 0) context.fillStyle = 'rgba(255,255,255,0.12)';
+          else context.fillStyle = 'rgba(0,0,0,0.12)';
+          context.fillRect(x0 + i * u, y0 + j * u, u, u);
+        }
+      }
+    },
+  },
+};
+
+const SKIN_KEY = 'tetris.skin';
+let currentSkin = 'retro';
 
 const PIECES = [
   null,
@@ -42,6 +136,7 @@ const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 const themeToggle = document.getElementById('theme-toggle');
+const skinSelect = document.getElementById('skin-select');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
 
@@ -161,18 +256,15 @@ function updateHUD() {
 
 function drawBlock(context, x, y, colorIndex, size, alpha) {
   if (!colorIndex) return;
-  const color = COLORS[colorIndex];
+  const skin = SKINS[currentSkin];
+  context.save();
   context.globalAlpha = alpha ?? 1;
-  context.fillStyle = color;
-  context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
-  // highlight
-  context.fillStyle = 'rgba(255,255,255,0.12)';
-  context.fillRect(x * size + 1, y * size + 1, size - 2, 4);
-  context.globalAlpha = 1;
+  skin.drawBlock(context, x * size, y * size, skin.colors[colorIndex], size);
+  context.restore();
 }
 
 function drawGrid() {
-  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--grid');
+  ctx.strokeStyle = SKINS[currentSkin].grid || getComputedStyle(document.documentElement).getPropertyValue('--grid');
   ctx.lineWidth = 0.5;
   for (let c = 1; c < COLS; c++) {
     ctx.beginPath();
@@ -315,6 +407,41 @@ themeToggle.addEventListener('click', () => {
   // repintar los canvas también en pausa o game over
   draw();
   drawNext();
+});
+
+function applySkin(name) {
+  currentSkin = Object.hasOwn(SKINS, name) ? name : 'retro';
+  document.documentElement.dataset.skin = currentSkin;
+  skinSelect.value = currentSkin;
+}
+
+function loadSkin() {
+  try {
+    const saved = localStorage.getItem(SKIN_KEY);
+    if (Object.hasOwn(SKINS, saved)) return saved;
+  } catch (e) { /* localStorage no disponible */ }
+  return 'retro';
+}
+
+for (const key of Object.keys(SKINS)) {
+  skinSelect.add(new Option(SKINS[key].name, key));
+}
+applySkin(loadSkin());
+
+skinSelect.addEventListener('change', () => {
+  applySkin(skinSelect.value);
+  try { localStorage.setItem(SKIN_KEY, currentSkin); } catch (e) { /* ignorar */ }
+  skinSelect.blur(); // devolver el teclado al juego
+  draw();
+  drawNext();
+});
+
+// evitar que las flechas cambien el select; el evento sigue burbujeando al juego
+skinSelect.addEventListener('keydown', e => {
+  if (e.code.startsWith('Arrow')) {
+    e.preventDefault();
+    skinSelect.blur();
+  }
 });
 
 init();
