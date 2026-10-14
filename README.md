@@ -166,6 +166,17 @@ Cuando una pieza recién generada ya colisiona al aparecer (`spawn`), se dispara
 
 ---
 
+## Tabla de records
+
+Los records se guardan en `localStorage` (clave `tetris.records`) con la forma `{ top: [{name, score, lines, level, date}], bestCombo, maxLines }`.
+
+- Al cargar la página aparece una pantalla de inicio con el Top 5, el mejor combo y las líneas máximas; el juego empieza con **Jugar** o `Enter`.
+- Al terminar la partida, si la puntuación entra en el Top 5 se pide un nombre (máx. 12 caracteres) y al pulsar **Guardar** la fila nueva aparece resaltada.
+- **Combo** = bloques consecutivos que eliminan al menos una línea; se reinicia cuando un bloque no elimina ninguna.
+- **Resetear records** (con confirmación) borra todo lo guardado.
+
+---
+
 ## Personalización
 
 Algunos parámetros fáciles de tunear en `game.js`:
