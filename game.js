@@ -51,6 +51,7 @@ const themeToggle = document.getElementById('theme-toggle');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
 let startLevel = loadStartLevel();
+let baseLevel = startLevel; // nivel inicial de la partida en curso
 let ignoreRepeat = false; // tras reanudar, ignora teclas mantenidas hasta el próximo keyup
 
 function speedFor(lvl) {
@@ -133,7 +134,7 @@ function clearLines() {
   if (cleared) {
     lines += cleared;
     score += (LINE_SCORES[cleared] || 0) * level;
-    level = startLevel + Math.floor(lines / 10);
+    level = baseLevel + Math.floor(lines / 10);
     dropInterval = speedFor(level);
     updateHUD();
   }
@@ -291,7 +292,8 @@ function init() {
   board = createBoard();
   score = 0;
   lines = 0;
-  level = startLevel;
+  baseLevel = startLevel;
+  level = baseLevel;
   paused = false;
   ignoreRepeat = false;
   gameOver = false;
@@ -310,6 +312,7 @@ function init() {
 
 document.addEventListener('keydown', e => {
   if (e.code === 'KeyP' || e.code === 'Escape') {
+    if (gameOver) return;
     e.preventDefault();
     if (!e.repeat) togglePause();
     return;
@@ -350,6 +353,9 @@ controlsBtn.addEventListener('click', () => {
 });
 
 startLevelSelect.value = String(startLevel);
+startLevelSelect.addEventListener('keydown', e => {
+  if (e.code === 'Escape' || e.code === 'KeyP') e.stopPropagation();
+});
 startLevelSelect.addEventListener('change', () => {
   startLevel = parseInt(startLevelSelect.value, 10);
   saveStartLevel(startLevel);
